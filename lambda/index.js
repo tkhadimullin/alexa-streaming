@@ -29,25 +29,44 @@ const LaunchRequestHandler = {
     }
 };
 
-const PlayAudioIntentHandler = {
+const PlayDefaultIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PlayAudioIntent';
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PlayDefaultIntent';
     },
     handle(handlerInput) {
-        // Get slot value if provided (AMAZON.SearchQuery returns raw text)
+        const content = getDefaultContent();
+        if (!content) {
+            return handlerInput.responseBuilder
+                .speak('No content is configured. Please set up stream URLs.')
+                .getResponse();
+        }
+        return handlerInput.responseBuilder
+            .speak(`Playing ${content.title}.`)
+            .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, DEFAULT_CONTENT, 0, null)
+            .getResponse();
+    }
+};
+
+const PlayContentIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PlayContentIntent';
+    },
+    handle(handlerInput) {
+        // Get slot value (AMAZON.SearchQuery returns raw text)
         const slots = handlerInput.requestEnvelope.request.intent.slots;
         const contentTypeSlot = slots && slots.contentType;
         const requestedType = contentTypeSlot && contentTypeSlot.value 
             ? contentTypeSlot.value.toLowerCase().trim() 
             : null;
 
-        // No slot provided - play default
         if (!requestedType) {
+            // Fallback to default if somehow no slot
             const content = getDefaultContent();
             if (!content) {
                 return handlerInput.responseBuilder
-                    .speak('Default content is not configured. Please set up stream URLs.')
+                    .speak('No content is configured.')
                     .getResponse();
             }
             return handlerInput.responseBuilder
@@ -56,11 +75,10 @@ const PlayAudioIntentHandler = {
                 .getResponse();
         }
 
-        // Slot provided - try to find matching content
+        // Try to find matching content
         const content = getContent(requestedType);
 
         if (content) {
-            // Found matching content - play it
             return handlerInput.responseBuilder
                 .speak(`Playing ${content.title}.`)
                 .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, requestedType, 0, null)
@@ -70,7 +88,7 @@ const PlayAudioIntentHandler = {
             const contentList = getContentListForSpeech();
             return handlerInput.responseBuilder
                 .speak(`I don't have ${requestedType}. You can play ${contentList}. What would you like?`)
-                .reprompt(`Try saying play ${DEFAULT_CONTENT}.`)
+                .reprompt(`Try saying play, followed by the content name.`)
                 .getResponse();
         }
     }
@@ -270,7 +288,8 @@ const ErrorHandler = {
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
-        PlayAudioIntentHandler,
+        PlayDefaultIntentHandler,
+        PlayContentIntentHandler,
         PauseIntentHandler,
         ResumeIntentHandler,
         AudioPlayerEventHandler,

@@ -10,7 +10,6 @@
       }
     },
     "manifestVersion": "1.0",
-    "permissions": [],
     "privacyAndCompliance": {
       "allowsPurchases": false,
       "isChildDirected": false,
@@ -24,26 +23,16 @@
           "summary": "Stream audio content at home",
           "examplePhrases": [
             "Alexa, open home stream",
-            "Alexa, ask home stream to play music",
+            "Alexa, ask home stream to play",
             "Alexa, pause"
           ],
-          "keywords": [
-            "audio",
-            "music",
-            "streaming",
-            "home"
-          ],
           "name": "Home Stream",
-          "description": "Stream audio content with Home Stream.",
-          "smallIconUri": "https://via.placeholder.com/108x108.png?text=Audio",
-          "largeIconUri": "https://via.placeholder.com/512x512.png?text=Audio"
+          "description": "Stream audio content with Home Stream."
         }
       },
       "isAvailableWorldwide": true,
-      "testingInstructions": "Say 'Alexa, open audio player' to start.",
-      "category": "MUSIC_AND_AUDIO",
-      "distributionCountries": []
+      "testingInstructions": "Say 'Alexa, open home stream' to start.",
+      "category": "MUSIC_AND_AUDIO"
     }
   }
 }
-

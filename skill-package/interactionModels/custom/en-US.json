@@ -4,13 +4,8 @@
       "invocationName": "home stream",
       "intents": [
         {
-          "name": "PlayAudioIntent",
-          "slots": [
-            {
-              "name": "contentType",
-              "type": "AMAZON.SearchQuery"
-            }
-          ],
+          "name": "PlayDefaultIntent",
+          "slots": [],
           "samples": [
             "play",
             "play audio",
@@ -18,6 +13,18 @@
             "start playing",
             "play something",
             "start the music",
+            "start"
+          ]
+        },
+        {
+          "name": "PlayContentIntent",
+          "slots": [
+            {
+              "name": "contentType",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
             "play {contentType}",
             "play some {contentType}",
             "put on {contentType}",
@@ -92,4 +99,3 @@
     }
   }
 }
-
