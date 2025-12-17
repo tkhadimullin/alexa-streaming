@@ -4,6 +4,8 @@ const {
     DEFAULT_CONTENT, 
     getContentListForSpeech,
     getContent,
+    hasContent,
+    getDefaultContent,
 } = require('./content-library');
 
 /* ---------- Launch & Play Handlers ---------- */
@@ -13,6 +15,11 @@ const LaunchRequestHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
+        if (!hasContent()) {
+            return handlerInput.responseBuilder
+                .speak('Welcome to Home Stream. No content is configured yet. Please set up stream URLs in the skill configuration.')
+                .getResponse();
+        }
         const contentList = getContentListForSpeech();
         const speakOutput = `Welcome to Home Stream. You can play ${contentList}. What would you like to hear?`;
         return handlerInput.responseBuilder
@@ -40,7 +47,12 @@ const PlayAudioIntentHandler = {
 
         // No slot provided - play default
         if (!requestedType) {
-            const content = CONTENT_LIBRARY[DEFAULT_CONTENT];
+            const content = getDefaultContent();
+            if (!content) {
+                return handlerInput.responseBuilder
+                    .speak('Default content is not configured. Please set up stream URLs.')
+                    .getResponse();
+            }
             return handlerInput.responseBuilder
                 .speak(`Playing ${content.title}.`)
                 .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, DEFAULT_CONTENT, 0, null)
@@ -92,7 +104,12 @@ const ResumeIntentHandler = {
     handle(handlerInput) {
         // For proper resume, you'd store the offset and token from PlaybackStopped
         // This is simplified to restart default content from beginning
-        const content = CONTENT_LIBRARY[DEFAULT_CONTENT];
+        const content = getDefaultContent();
+        if (!content) {
+            return handlerInput.responseBuilder
+                .speak('No content is configured.')
+                .getResponse();
+        }
         return handlerInput.responseBuilder
             .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, DEFAULT_CONTENT, 0, null)
             .getResponse();
@@ -141,9 +158,12 @@ const PlaybackControllerHandler = {
         const controllerEventName = handlerInput.requestEnvelope.request.type;
         console.log(`PlaybackController event: ${controllerEventName}`);
         
-        const content = CONTENT_LIBRARY[DEFAULT_CONTENT];
+        const content = getDefaultContent();
         switch (controllerEventName) {
             case 'PlaybackController.PlayCommandIssued':
+                if (!content) {
+                    return handlerInput.responseBuilder.getResponse();
+                }
                 return handlerInput.responseBuilder
                     .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, DEFAULT_CONTENT, 0, null)
                     .getResponse();
