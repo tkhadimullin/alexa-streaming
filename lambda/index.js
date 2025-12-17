@@ -1,12 +1,34 @@
 const Alexa = require('ask-sdk-core');
 const { 
-    CONTENT_LIBRARY, 
-    DEFAULT_CONTENT, 
     getContentListForSpeech,
     getContent,
     hasContent,
     getDefaultContent,
+    getDefaultContentKey,
 } = require('./content-library');
+const { setupContent } = require('./setup-content');
+
+/* ---------- Setup Handler ---------- */
+
+const SetupContentIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'SetupContentIntent';
+    },
+    async handle(handlerInput) {
+        const success = await setupContent();
+        if (success) {
+            const contentList = await getContentListForSpeech();
+            return handlerInput.responseBuilder
+                .speak(`Content has been set up. You can now play ${contentList}.`)
+                .getResponse();
+        } else {
+            return handlerInput.responseBuilder
+                .speak('Sorry, I could not set up the content. Please check the logs.')
+                .getResponse();
+        }
+    }
+};
 
 /* ---------- Launch & Play Handlers ---------- */
 
@@ -14,17 +36,18 @@ const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
-    handle(handlerInput) {
-        if (!hasContent()) {
+    async handle(handlerInput) {
+        if (!(await hasContent())) {
             return handlerInput.responseBuilder
-                .speak('Welcome to Home Stream. No content is configured yet. Please set up stream URLs in the skill configuration.')
+                .speak('Welcome to Home Stream. No content is configured yet. Please set up streams in the database.')
                 .getResponse();
         }
-        const contentList = getContentListForSpeech();
+        const contentList = await getContentListForSpeech();
         const speakOutput = `Welcome to Home Stream. You can play ${contentList}. What would you like to hear?`;
+        const defaultKey = await getDefaultContentKey();
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt(`Try saying play ${DEFAULT_CONTENT}.`)
+            .reprompt(`Try saying play ${defaultKey || 'something'}.`)
             .getResponse();
     }
 };
@@ -34,16 +57,17 @@ const PlayDefaultIntentHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PlayDefaultIntent';
     },
-    handle(handlerInput) {
-        const content = getDefaultContent();
+    async handle(handlerInput) {
+        const content = await getDefaultContent();
+        const defaultKey = await getDefaultContentKey();
         if (!content) {
             return handlerInput.responseBuilder
-                .speak('No content is configured. Please set up stream URLs.')
+                .speak('No content is configured. Please set up streams in the database.')
                 .getResponse();
         }
         return handlerInput.responseBuilder
             .speak(`Playing ${content.title}.`)
-            .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, DEFAULT_CONTENT, 0, null)
+            .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, defaultKey, 0, null)
             .getResponse();
     }
 };
@@ -53,7 +77,7 @@ const PlayContentIntentHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PlayContentIntent';
     },
-    handle(handlerInput) {
+    async handle(handlerInput) {
         // Get slot value (AMAZON.SearchQuery returns raw text)
         const slots = handlerInput.requestEnvelope.request.intent.slots;
         const contentTypeSlot = slots && slots.contentType;
@@ -63,7 +87,8 @@ const PlayContentIntentHandler = {
 
         if (!requestedType) {
             // Fallback to default if somehow no slot
-            const content = getDefaultContent();
+            const content = await getDefaultContent();
+            const defaultKey = await getDefaultContentKey();
             if (!content) {
                 return handlerInput.responseBuilder
                     .speak('No content is configured.')
@@ -71,12 +96,12 @@ const PlayContentIntentHandler = {
             }
             return handlerInput.responseBuilder
                 .speak(`Playing ${content.title}.`)
-                .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, DEFAULT_CONTENT, 0, null)
+                .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, defaultKey, 0, null)
                 .getResponse();
         }
 
         // Try to find matching content
-        const content = getContent(requestedType);
+        const content = await getContent(requestedType);
 
         if (content) {
             return handlerInput.responseBuilder
@@ -85,7 +110,7 @@ const PlayContentIntentHandler = {
                 .getResponse();
         } else {
             // Content not found - prompt with options
-            const contentList = getContentListForSpeech();
+            const contentList = await getContentListForSpeech();
             return handlerInput.responseBuilder
                 .speak(`I don't have ${requestedType}. You can play ${contentList}. What would you like?`)
                 .reprompt(`Try saying play, followed by the content name.`)
@@ -115,17 +140,16 @@ const ResumeIntentHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.ResumeIntent';
     },
-    handle(handlerInput) {
-        // For proper resume, you'd store the offset and token from PlaybackStopped
-        // This is simplified to restart default content from beginning
-        const content = getDefaultContent();
+    async handle(handlerInput) {
+        const content = await getDefaultContent();
+        const defaultKey = await getDefaultContentKey();
         if (!content) {
             return handlerInput.responseBuilder
                 .speak('No content is configured.')
                 .getResponse();
         }
         return handlerInput.responseBuilder
-            .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, DEFAULT_CONTENT, 0, null)
+            .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, defaultKey, 0, null)
             .getResponse();
     }
 };
@@ -142,16 +166,12 @@ const AudioPlayerEventHandler = {
         
         switch (audioPlayerEventName) {
             case 'AudioPlayer.PlaybackStarted':
-                // Track playback started
                 break;
             case 'AudioPlayer.PlaybackFinished':
-                // Track playback finished
                 break;
             case 'AudioPlayer.PlaybackStopped':
-                // Store offset for resume: handlerInput.requestEnvelope.request.offsetInMilliseconds
                 break;
             case 'AudioPlayer.PlaybackNearlyFinished':
-                // Queue next track here if needed
                 break;
             case 'AudioPlayer.PlaybackFailed':
                 console.log('Playback failed:', handlerInput.requestEnvelope.request.error);
@@ -168,18 +188,20 @@ const PlaybackControllerHandler = {
     canHandle(handlerInput) {
         return handlerInput.requestEnvelope.request.type.startsWith('PlaybackController.');
     },
-    handle(handlerInput) {
+    async handle(handlerInput) {
         const controllerEventName = handlerInput.requestEnvelope.request.type;
         console.log(`PlaybackController event: ${controllerEventName}`);
         
-        const content = getDefaultContent();
+        const content = await getDefaultContent();
+        const defaultKey = await getDefaultContentKey();
+        
         switch (controllerEventName) {
             case 'PlaybackController.PlayCommandIssued':
                 if (!content) {
                     return handlerInput.responseBuilder.getResponse();
                 }
                 return handlerInput.responseBuilder
-                    .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, DEFAULT_CONTENT, 0, null)
+                    .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, defaultKey, 0, null)
                     .getResponse();
             case 'PlaybackController.PauseCommandIssued':
                 return handlerInput.responseBuilder
@@ -187,7 +209,6 @@ const PlaybackControllerHandler = {
                     .getResponse();
             case 'PlaybackController.NextCommandIssued':
             case 'PlaybackController.PreviousCommandIssued':
-                // Handle next/previous if you have a playlist
                 break;
         }
         
@@ -214,12 +235,12 @@ const HelpIntentHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.HelpIntent';
     },
-    handle(handlerInput) {
-        const contentList = getContentListForSpeech();
+    async handle(handlerInput) {
+        const contentList = await getContentListForSpeech();
         const speakOutput = `You can say play followed by a content type. Available options are: ${contentList}. You can also say pause to stop, or resume to continue. While playing, you can say Alexa, set a sleep timer, to automatically stop playback. What would you like to play?`;
         return handlerInput.responseBuilder
             .speak(speakOutput)
-            .reprompt(`Try saying play ${DEFAULT_CONTENT}.`)
+            .reprompt(`Try saying play, followed by the content name.`)
             .getResponse();
     }
 };
@@ -288,6 +309,7 @@ const ErrorHandler = {
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
+        SetupContentIntentHandler,
         PlayDefaultIntentHandler,
         PlayContentIntentHandler,
         PauseIntentHandler,
@@ -302,4 +324,3 @@ exports.handler = Alexa.SkillBuilders.custom()
     )
     .addErrorHandlers(ErrorHandler)
     .lambda();
-

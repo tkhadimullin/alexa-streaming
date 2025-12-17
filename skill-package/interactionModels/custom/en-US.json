@@ -4,6 +4,17 @@
       "invocationName": "home stream",
       "intents": [
         {
+          "name": "SetupContentIntent",
+          "slots": [],
+          "samples": [
+            "setup content",
+            "initialize content",
+            "setup streams",
+            "initialize streams",
+            "load content"
+          ]
+        },
+        {
           "name": "PlayDefaultIntent",
           "slots": [],
           "samples": [
