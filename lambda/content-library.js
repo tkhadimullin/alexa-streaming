@@ -4,10 +4,15 @@
  * Content is stored in DynamoDB table.
  * Table structure:
  *   - Partition Key: "id" (String) = "content-library"
- *   - Attribute: "content" (Map) = { "key": { "url": "...", "title": "..." }, ... }
+ *   - Attribute: "content" (String) = JSON encoded content object
  *   - Attribute: "defaultContent" (String) = default content key
  * 
- * To populate, use the Alexa Developer Console Test tab or AWS Console.
+ * Example DynamoDB item:
+ * {
+ *   "id": "content-library",
+ *   "content": "{\"ocean sounds\":{\"url\":\"https://example.com/ocean.mp3\",\"title\":\"Ocean Sounds\"}}",
+ *   "defaultContent": "ocean sounds"
+ * }
  */
 
 const AWS = require('aws-sdk');
@@ -17,7 +22,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
 // Table name - Alexa-hosted skills use this format
 // You may need to check your actual table name in AWS Console
-const TABLE_NAME = process.env.DYNAMODB_PERSISTENCE_TABLE_NAME || 'home-stream-content';
+const TABLE_NAME = process.env.DYNAMODB_PERSISTENCE_TABLE_NAME;
 
 // Cache for content library (loaded once per Lambda cold start)
 let cachedLibrary = null;
@@ -38,7 +43,19 @@ async function loadContentLibrary() {
         }).promise();
 
         if (result.Item) {
-            cachedLibrary = result.Item.content || {};
+            // Parse JSON-encoded content string
+            const contentStr = result.Item.content;
+            if (typeof contentStr === 'string') {
+                try {
+                    cachedLibrary = JSON.parse(contentStr);
+                } catch (e) {
+                    console.error('Failed to parse content JSON:', e);
+                    cachedLibrary = {};
+                }
+            } else {
+                // Fallback: if stored as Map, use directly
+                cachedLibrary = contentStr || {};
+            }
             cachedDefault = result.Item.defaultContent || Object.keys(cachedLibrary)[0] || null;
         } else {
             console.log('No content-library item found in DynamoDB');
