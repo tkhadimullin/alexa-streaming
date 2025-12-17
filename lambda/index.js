@@ -6,29 +6,6 @@ const {
     getDefaultContent,
     getDefaultContentKey,
 } = require('./content-library');
-const { setupContent } = require('./setup-content');
-
-/* ---------- Setup Handler ---------- */
-
-const SetupContentIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'SetupContentIntent';
-    },
-    async handle(handlerInput) {
-        const success = await setupContent();
-        if (success) {
-            const contentList = await getContentListForSpeech();
-            return handlerInput.responseBuilder
-                .speak(`Content has been set up. You can now play ${contentList}.`)
-                .getResponse();
-        } else {
-            return handlerInput.responseBuilder
-                .speak('Sorry, I could not set up the content. Please check the logs.')
-                .getResponse();
-        }
-    }
-};
 
 /* ---------- Launch & Play Handlers ---------- */
 
@@ -309,7 +286,6 @@ const ErrorHandler = {
 exports.handler = Alexa.SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
-        SetupContentIntentHandler,
         PlayDefaultIntentHandler,
         PlayContentIntentHandler,
         PauseIntentHandler,
