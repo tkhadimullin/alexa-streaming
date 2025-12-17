@@ -1,10 +1,6 @@
 # Dependencies
 node_modules/
 
-# Extracted skill packages
-extracted-skill/
-*.zip
-
 # Build output
 .ask/
 dist/
