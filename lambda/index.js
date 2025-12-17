@@ -35,15 +35,12 @@ const PlayAudioIntentHandler = {
             && Alexa.getIntentName(handlerInput.requestEnvelope) === 'PlayAudioIntent';
     },
     handle(handlerInput) {
-        // Get slot value if provided
+        // Get slot value if provided (AMAZON.SearchQuery returns raw text)
         const slots = handlerInput.requestEnvelope.request.intent.slots;
         const contentTypeSlot = slots && slots.contentType;
-        const requestedType = contentTypeSlot && contentTypeSlot.resolutions 
-            && contentTypeSlot.resolutions.resolutionsPerAuthority
-            && contentTypeSlot.resolutions.resolutionsPerAuthority[0]
-            && contentTypeSlot.resolutions.resolutionsPerAuthority[0].status.code === 'ER_SUCCESS_MATCH'
-            ? contentTypeSlot.resolutions.resolutionsPerAuthority[0].values[0].value.name
-            : contentTypeSlot && contentTypeSlot.value;
+        const requestedType = contentTypeSlot && contentTypeSlot.value 
+            ? contentTypeSlot.value.toLowerCase().trim() 
+            : null;
 
         // No slot provided - play default
         if (!requestedType) {
@@ -60,14 +57,13 @@ const PlayAudioIntentHandler = {
         }
 
         // Slot provided - try to find matching content
-        const contentKey = requestedType.toLowerCase();
-        const content = getContent(contentKey);
+        const content = getContent(requestedType);
 
         if (content) {
             // Found matching content - play it
             return handlerInput.responseBuilder
                 .speak(`Playing ${content.title}.`)
-                .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, contentKey, 0, null)
+                .addAudioPlayerPlayDirective('REPLACE_ALL', content.url, requestedType, 0, null)
                 .getResponse();
         } else {
             // Content not found - prompt with options

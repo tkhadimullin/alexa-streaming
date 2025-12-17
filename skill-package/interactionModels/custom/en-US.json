@@ -8,7 +8,7 @@
           "slots": [
             {
               "name": "contentType",
-              "type": "ContentType"
+              "type": "AMAZON.SearchQuery"
             }
           ],
           "samples": [
@@ -88,25 +88,7 @@
           "samples": []
         }
       ],
-      "types": [
-        {
-          "name": "ContentType",
-          "values": [
-            {
-              "name": {
-                "value": "ocean sounds",
-                "synonyms": ["ocean", "waves", "sea sounds", "ocean waves"]
-              }
-            },
-            {
-              "name": {
-                "value": "air play",
-                "synonyms": ["airplay", "air"]
-              }
-            }
-          ]
-        }
-      ]
+      "types": []
     }
   }
 }

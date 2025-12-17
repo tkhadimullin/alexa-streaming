@@ -1,53 +1,41 @@
 /**
  * Content Library
  * 
- * URLs are loaded from environment variables (set in Alexa Developer Console).
- * Content keys and titles are defined here for slot matching.
+ * Content is loaded from CONTENT_LIBRARY_JSON environment variable.
+ * Set this in Alexa Developer Console (Code tab → Environment Variables).
  * 
- * To configure URLs in Alexa Developer Console:
- * 1. Go to Code tab
- * 2. Click on "Environment Variables" (or set them in ask-resources.json)
- * 3. Add variables like:
- *    - STREAM_URL_OCEAN_SOUNDS=https://your-url.com/ocean.mp3
- *    - STREAM_URL_AIR_PLAY=https://your-url.com/airplay.mp3
+ * Example JSON value:
+ * {
+ *   "ocean sounds": { "url": "https://example.com/ocean.mp3", "title": "Ocean Sounds" },
+ *   "air play": { "url": "https://example.com/airplay.mp3", "title": "Air Play Stream" }
+ * }
+ * 
+ * DEFAULT_CONTENT_KEY env var sets which content plays by default (optional, defaults to first key).
  */
 
-// Content definitions - add your content types here
-// The key is used for slot matching, title for speech
-const CONTENT_DEFINITIONS = {
-    'ocean sounds': {
-        title: 'Ocean Sounds',
-        envVar: 'STREAM_URL_OCEAN_SOUNDS'
-    },
-    'air play': {
-        title: 'Air Play Stream',
-        envVar: 'STREAM_URL_AIR_PLAY'
+// Load content library from environment
+function loadContentLibrary() {
+    const jsonStr = process.env.CONTENT_LIBRARY_JSON;
+    if (!jsonStr) {
+        console.warn('CONTENT_LIBRARY_JSON environment variable not set');
+        return {};
     }
-};
-
-// Default content key
-const DEFAULT_CONTENT = 'ocean sounds';
-
-// Build content library with URLs from environment
-function buildContentLibrary() {
-    const library = {};
-    for (const [key, def] of Object.entries(CONTENT_DEFINITIONS)) {
-        const url = process.env[def.envVar];
-        if (url) {
-            library[key] = {
-                url: url,
-                title: def.title
-            };
-        } else {
-            console.warn(`Missing environment variable: ${def.envVar} for content: ${key}`);
-        }
+    try {
+        return JSON.parse(jsonStr);
+    } catch (e) {
+        console.error('Failed to parse CONTENT_LIBRARY_JSON:', e.message);
+        return {};
     }
-    return library;
 }
 
-const CONTENT_LIBRARY = buildContentLibrary();
+const CONTENT_LIBRARY = loadContentLibrary();
 
-// Helper to get content names for speech (only configured content)
+// Default content key (from env or first available)
+const DEFAULT_CONTENT = process.env.DEFAULT_CONTENT_KEY 
+    || Object.keys(CONTENT_LIBRARY)[0] 
+    || null;
+
+// Helper to get content names for speech
 function getContentListForSpeech() {
     const types = Object.keys(CONTENT_LIBRARY);
     if (types.length === 0) return 'nothing configured';
@@ -57,7 +45,7 @@ function getContentListForSpeech() {
     return typesCopy.join(', ') + ', or ' + last;
 }
 
-// Get content by key, returns null if not found or not configured
+// Get content by key, returns null if not found
 function getContent(key) {
     return CONTENT_LIBRARY[key] || null;
 }
@@ -74,12 +62,11 @@ function hasContent() {
 
 // Get default content (may be null if not configured)
 function getDefaultContent() {
-    return CONTENT_LIBRARY[DEFAULT_CONTENT] || null;
+    return DEFAULT_CONTENT ? CONTENT_LIBRARY[DEFAULT_CONTENT] : null;
 }
 
 module.exports = {
     CONTENT_LIBRARY,
-    CONTENT_DEFINITIONS,
     DEFAULT_CONTENT,
     getContentListForSpeech,
     getContent,
