@@ -1,7 +1,7 @@
 {
   "name": "alexa-audio-player-skill",
   "version": "1.0.0",
-  "description": "Minimal Alexa Audio Player Skill Template",
+  "description": "Alexa Audio Player Skill for in-home use",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

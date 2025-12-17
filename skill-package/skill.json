@@ -2,10 +2,6 @@
   "manifest": {
     "apis": {
       "custom": {
-        "endpoint": {
-          "sourceDir": "lambda",
-          "uri": "ask-custom-audio-player-skill"
-        },
         "interfaces": [
           {
             "type": "AUDIO_PLAYER"
