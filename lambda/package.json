@@ -1,0 +1,14 @@
+{
+  "name": "alexa-audio-player-skill",
+  "version": "1.0.0",
+  "description": "Minimal Alexa Audio Player Skill Template",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "ask-sdk-core": "^2.14.0",
+    "ask-sdk-model": "^1.86.0"
+  }
+}
+

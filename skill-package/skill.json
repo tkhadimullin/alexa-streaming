@@ -1,0 +1,53 @@
+{
+  "manifest": {
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "sourceDir": "lambda",
+          "uri": "ask-custom-audio-player-skill"
+        },
+        "interfaces": [
+          {
+            "type": "AUDIO_PLAYER"
+          }
+        ]
+      }
+    },
+    "manifestVersion": "1.0",
+    "permissions": [],
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false,
+      "usesPersonalInfo": false
+    },
+    "publishingInformation": {
+      "locales": {
+        "en-US": {
+          "summary": "Stream audio content at home",
+          "examplePhrases": [
+            "Alexa, open home stream",
+            "Alexa, ask home stream to play music",
+            "Alexa, pause"
+          ],
+          "keywords": [
+            "audio",
+            "music",
+            "streaming",
+            "home"
+          ],
+          "name": "Home Stream",
+          "description": "Stream audio content with Home Stream.",
+          "smallIconUri": "https://via.placeholder.com/108x108.png?text=Audio",
+          "largeIconUri": "https://via.placeholder.com/512x512.png?text=Audio"
+        }
+      },
+      "isAvailableWorldwide": true,
+      "testingInstructions": "Say 'Alexa, open audio player' to start.",
+      "category": "MUSIC_AND_AUDIO",
+      "distributionCountries": []
+    }
+  }
+}
+
