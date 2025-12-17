@@ -45,16 +45,11 @@ async function loadContentLibrary() {
         if (result.Item) {
             // Parse JSON-encoded content string
             const contentStr = result.Item.content;
-            if (typeof contentStr === 'string') {
-                try {
-                    cachedLibrary = JSON.parse(contentStr);
-                } catch (e) {
-                    console.error('Failed to parse content JSON:', e);
-                    cachedLibrary = {};
-                }
-            } else {
-                // Fallback: if stored as Map, use directly
-                cachedLibrary = contentStr || {};
+            try {
+                cachedLibrary = JSON.parse(contentStr);
+            } catch (e) {
+                console.error('Failed to parse content JSON:', e);
+                cachedLibrary = {};
             }
             cachedDefault = result.Item.defaultContent || Object.keys(cachedLibrary)[0] || null;
         } else {
