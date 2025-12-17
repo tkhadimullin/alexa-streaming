@@ -10,29 +10,74 @@
       }
     },
     "manifestVersion": "1.0",
-    "privacyAndCompliance": {
-      "allowsPurchases": false,
-      "isChildDirected": false,
-      "isExportCompliant": true,
-      "containsAds": false,
-      "usesPersonalInfo": false
-    },
     "publishingInformation": {
+      "automaticClonedLocale": {
+        "locales": [
+          {
+            "source": "en-US"
+          }
+        ]
+      },
+      "distributionCountries": [],
+      "isAvailableWorldwide": true,
       "locales": {
         "en-US": {
-          "summary": "Stream audio content at home",
+          "description": "Stream audio content at home with customizable content library.",
           "examplePhrases": [
-            "Alexa, open home stream",
-            "Alexa, ask home stream to play",
-            "Alexa, pause"
+            "Alexa open home stream",
+            "play",
+            "help"
           ],
+          "keywords": [],
           "name": "Home Stream",
-          "description": "Stream audio content with Home Stream."
+          "summary": "Stream audio content at home"
+        },
+        "en-CA": {
+          "description": "Stream audio content at home with customizable content library.",
+          "examplePhrases": [
+            "Alexa open home stream",
+            "play",
+            "help"
+          ],
+          "keywords": [],
+          "name": "Home Stream",
+          "summary": "Stream audio content at home"
+        },
+        "en-IN": {
+          "description": "Stream audio content at home with customizable content library.",
+          "examplePhrases": [
+            "Alexa open home stream",
+            "play",
+            "help"
+          ],
+          "keywords": [],
+          "name": "Home Stream",
+          "summary": "Stream audio content at home"
+        },
+        "en-AU": {
+          "description": "Stream audio content at home with customizable content library.",
+          "examplePhrases": [
+            "Alexa open home stream",
+            "play",
+            "help"
+          ],
+          "keywords": [],
+          "name": "Home Stream",
+          "summary": "Stream audio content at home"
+        },
+        "en-GB": {
+          "description": "Stream audio content at home with customizable content library.",
+          "examplePhrases": [
+            "Alexa open home stream",
+            "play",
+            "help"
+          ],
+          "keywords": [],
+          "name": "Home Stream",
+          "summary": "Stream audio content at home"
         }
       },
-      "isAvailableWorldwide": true,
-      "testingInstructions": "Say 'Alexa, open home stream' to start.",
-      "category": "MUSIC_AND_AUDIO"
+      "testingInstructions": "Say 'Alexa, open home stream' to start. Configure DynamoDB with content first."
     }
   }
 }

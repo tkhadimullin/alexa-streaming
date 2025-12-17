@@ -1,14 +1,16 @@
 {
-  "name": "alexa-audio-player-skill",
+  "name": "home-stream",
   "version": "1.0.0",
-  "description": "Alexa Audio Player Skill for in-home use",
+  "description": "Alexa audio streaming skill with DynamoDB content",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "author": "",
+  "license": "Apache License",
   "dependencies": {
-    "ask-sdk-core": "^2.14.0",
-    "ask-sdk-model": "^1.86.0"
+    "ask-sdk-core": "^2.7.0",
+    "ask-sdk-model": "^1.19.0",
+    "aws-sdk": "^2.326.0"
   }
 }
-
